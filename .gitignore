@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+dist/
+build/
+*.spec
+
+# IDEs
+.vscode/
+.idea/
+
+# Local config and tests
+config.json
+test_image.jpg
+*_resized.jpg
+*_resized.png
