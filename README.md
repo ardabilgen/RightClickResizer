@@ -4,7 +4,7 @@ A simple tool that adds a "Resize Image" option to the Windows context menu.
 
 ## Installation
 
-1. Run `build.bat` to create the `.exe` file (or run from source if Python is installed).
+1. Run `build.bat` to create the `.exe` file (or run from source if Python is installed) or get it from Realeses.
 2. Move the generated `dist/RightClickResizer.exe` to a permanent location (e.g., `C:\Program Files\RightClickResizer`).
 3. Run `RightClickResizer.exe` **as Administrator**.
 4. Click the "Install Context Menu" button.
