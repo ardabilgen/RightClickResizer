@@ -32,7 +32,7 @@ def install_context_menu():
         
         # Create key
         key = winreg.CreateKey(winreg.HKEY_CLASSES_ROOT, key_path)
-        winreg.SetValue(key, "", winreg.REG_SZ, "Resize Image")
+        winreg.SetValueEx(key, "", 0, winreg.REG_SZ, "Resize Image")
         winreg.SetValueEx(key, "Icon", 0, winreg.REG_SZ, "imageres.dll,-5100") # Generic image icon
         winreg.CloseKey(key)
         
@@ -40,7 +40,7 @@ def install_context_menu():
         command_key = winreg.CreateKey(winreg.HKEY_CLASSES_ROOT, f"{key_path}\\command")
         # "%1" passes the file path
         cmd_str = f'{exe_path} "%1"'
-        winreg.SetValue(command_key, "", winreg.REG_SZ, cmd_str)
+        winreg.SetValueEx(command_key, "", 0, winreg.REG_SZ, cmd_str)
         winreg.CloseKey(command_key)
         
         print("Context menu installed successfully.")

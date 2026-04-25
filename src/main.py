@@ -72,12 +72,13 @@ def main():
         
         for file_path in files:
             if os.path.isfile(file_path):
-                if resize_image(file_path, config["max_width"], config["max_height"], config["quality"]):
+                if resize_image(file_path, config.get("max_width", 1920), config.get("max_height", 1080), config.get("quality", 85)):
                     success_count += 1
+                else:
+                    print(f"Error: Failed to resize {file_path}")
+            else:
+                print(f"Error: {file_path} is not a file.")
         
-        # Optional: Show a toast or small popup if desired, but for now just exit.
-        # If we want to be silent, we just exit.
-        # Maybe print to stdout for debugging.
         print(f"Processed {success_count} files.")
     else:
         # No arguments, open GUI

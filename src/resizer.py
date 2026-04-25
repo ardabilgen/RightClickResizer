@@ -9,22 +9,8 @@ def resize_image(image_path, max_width, max_height, quality):
             # but here we keep format mostly, except for transparency handling if needed)
             # For now, we just resize and save in same format or convert if needed.
             
-            # Calculate new size
-            width, height = img.size
-            aspect_ratio = width / height
-            
-            new_width = width
-            new_height = height
-
-            if width > max_width or height > max_height:
-                if (max_width / width) < (max_height / height):
-                    new_width = max_width
-                    new_height = int(max_width / aspect_ratio)
-                else:
-                    new_height = max_height
-                    new_width = int(max_height * aspect_ratio)
-            
-            img = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
+            # Use thumbnail to resize maintaining aspect ratio and only if necessary
+            img.thumbnail((max_width, max_height), Image.Resampling.BICUBIC)
             
             # Construct new filename
             directory, filename = os.path.split(image_path)
@@ -35,7 +21,7 @@ def resize_image(image_path, max_width, max_height, quality):
             # Save
             # Handle some formats that might need specific params
             if ext.lower() in ['.jpg', '.jpeg']:
-                img.save(new_path, quality=quality, optimize=True)
+                img.save(new_path, quality=quality)
             else:
                 img.save(new_path, quality=quality)
                 
