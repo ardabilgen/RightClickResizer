@@ -4,7 +4,7 @@ import tkinter as tk
 from tkinter import messagebox
 from config import load_config, save_config
 from resizer import resize_image
-from installer import install_context_menu, uninstall_context_menu, is_admin
+from context_menu import install_context_menu, uninstall_context_menu, is_admin
 import ctypes
 
 def run_gui():
