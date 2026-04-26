@@ -1,13 +1,24 @@
 # RightClickResizer
 
-A simple tool that adds a "Resize Image" option to the Windows context menu.
+A simple tool that adds a "Resize Image" option to the Windows context menu for image files.
+
+## Features
+
+- Right-click on any image file to resize it
+- Supports JPG, JPEG, PNG, BMP, WebP, and GIF files
+- Creates a resized copy with `_resized` suffix
+- Configurable max width, height, and quality
 
 ## Installation
 
-1. Run `build.bat` to create the `.exe` file (or run from source if Python is installed) or get it from Releases.
-2. Move the generated `dist/RightClickResizer.exe` to a permanent location (e.g., `C:\Program Files\RightClickResizer`).
-3. Run `RightClickResizer.exe` **as Administrator**.
-4. Click the "Install Context Menu" button.
+1. Download the latest release from [GitHub Releases](https://github.com/ardabilgen/RightClickResizer/releases).
+2. Run `RightClickResizer.exe` **as Administrator**.
+3. Click "Install Context Menu".
+
+Or build from source:
+1. Run `build.bat` to create the `.exe` file.
+2. Run `dist/RightClickResizer.exe` as Administrator.
+3. Click "Install Context Menu".
 
 ## Usage
 
@@ -17,11 +28,14 @@ A simple tool that adds a "Resize Image" option to the Windows context menu.
 
 ## Settings
 
-To change settings, run the program directly (without selecting an image). You can adjust max width, height, and quality.
+Run the program directly (without right-clicking on a file) to adjust:
+- Max width
+- Max height  
+- Quality (1-100)
 
 ## Uninstall
 
-Open the program and click the "Uninstall" button.
+Run the program as Administrator and click "Uninstall".
 
 ---
 *Made with Antigravity*
