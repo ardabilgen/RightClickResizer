@@ -1,7 +1,7 @@
 import sys
 import os
 import tkinter as tk
-from tkinter import messagebox, ttk
+from tkinter import messagebox, ttk, Scrollbar
 from config import load_config, save_config
 from resizer import resize_image
 from video_converter import convert_to_mp4, VIDEO_EXTENSIONS
@@ -18,91 +18,119 @@ def is_video_file(file_path):
 def run_gui():
     root = tk.Tk()
     root.title("RightClickResizer — Image & Video Tool")
-    root.geometry("450x550")
+    root.geometry("500x600")
+    root.minsize(400, 400)
     
     config = load_config()
     
-    # Modern styling
-    style = ttk.Style()
-    style.configure('TLabel', font=('Segoe UI', 10))
-    style.configure('Header.TLabel', font=('Segoe UI', 12, 'bold'))
-    style.configure('Section.TLabel', font=('Segoe UI', 10, 'bold'), foreground='#2c7be5')
-    style.configure('Button', font=('Segoe UI', 9))
+    # Main scrollable frame
+    main_canvas = tk.Canvas(root, highlightthickness=0)
+    scrollbar = Scrollbar(root, orient=tk.VERTICAL, command=main_canvas.yview)
+    scroll_frame = tk.Frame(main_canvas, highlightthickness=0)
     
-    # Main container with scrollbar
-    main_frame = ttk.Frame(root, padding=15)
-    main_frame.pack(fill=tk.BOTH, expand=True)
-    
-    canvas = tk.Canvas(main_frame, highlightthickness=0)
-    scrollbar = ttk.Scrollbar(main_frame, orient=tk.VERTICAL, command=canvas.yview)
-    scrollable = ttk.Frame(canvas)
-    
-    scrollbar.configure(command=canvas.yview)
-    canvas.configure(yscrollcommand=scrollbar.set)
-    
-    canvas.bind('<Configure>', lambda e: canvas.configure(scrollregion=canvas.bbox('all')))
     scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-    canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-    scrollable_window = canvas.window_create(0, 0, window=scrollable, anchor='nw')
+    main_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
     
-    scrollable.bind('<Configure>', lambda e: canvas.configure(scrollregion=canvas.bbox('all')))
+    main_canvas.configure(yscrollcommand=scrollbar.set)
+    main_canvas.bind('<Configure>', lambda e: main_canvas.configure(
+        scrollregion=main_canvas.bbox('all')
+    ))
     
-    # Title
-    ttk.Label(scrollable, text="⚡ RightClickResizer", style='Header.TLabel').pack(pady=(0, 15))
+    # Place scroll_frame inside canvas
+    main_canvas.create_window((0, 0), window=scroll_frame, anchor='nw')
+    scroll_frame.bind('<Configure>', lambda e: main_canvas.configure(
+        scrollregion=main_canvas.bbox('all')
+    ))
+    
+    # Bind mouse wheel to scroll
+    def on_mousewheel(event):
+        main_canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+    main_canvas.bind('<MouseWheel>', on_mousewheel)
+    
+    padding = 20
+    section_gap = 15
+    
+    # ─── Title ───
+    title_lbl = tk.Label(scroll_frame, text="⚡ RightClickResizer", 
+                        font=('Segoe UI', 16, 'bold'))
+    title_lbl.pack(pady=(padding, 5))
+    
+    subtitle_lbl = tk.Label(scroll_frame, text="Image Resizer & Video Converter",
+                           font=('Segoe UI', 9), fg='#666')
+    subtitle_lbl.pack(pady=(0, section_gap))
     
     # ─── Image Settings Section ───
-    ttk.Label(scrollable, text="🖼️  Image Settings", style='Section.TLabel').pack(pady=(10, 5))
+    img_header = tk.Label(scroll_frame, text="🖼️  Image Settings", 
+                         font=('Segoe UI', 11, 'bold'), fg='#2c7be5')
+    img_header.pack(pady=(0, 8))
     
-    img_frame = ttk.LabelFrame(scrollable, text="Resize Options", padding=10)
-    img_frame.pack(fill=tk.X, pady=5)
+    img_frame = tk.LabelFrame(scroll_frame, text="Resize Options", 
+                             font=('Segoe UI', 9), padx=15, pady=10)
+    img_frame.pack(fill=tk.X, padx=padding, pady=5)
     
     # Max Width
-    ttk.Label(img_frame, text="Max Width:").grid(row=0, column=0, padx=5, pady=5, sticky='w')
-    width_var = ttk.Entry(img_frame, width=10)
+    tk.Label(img_frame, text="Max Width:", font=('Segoe UI', 9)).grid(
+        row=0, column=0, padx=5, pady=5, sticky='w')
+    width_var = tk.Entry(img_frame, font=('Segoe UI', 9), width=12)
     width_var.insert(0, str(config.get("max_width", 1920)))
     width_var.grid(row=0, column=1, padx=5, pady=5)
     
     # Max Height
-    ttk.Label(img_frame, text="Max Height:").grid(row=1, column=0, padx=5, pady=5, sticky='w')
-    height_var = ttk.Entry(img_frame, width=10)
+    tk.Label(img_frame, text="Max Height:", font=('Segoe UI', 9)).grid(
+        row=1, column=0, padx=5, pady=5, sticky='w')
+    height_var = tk.Entry(img_frame, font=('Segoe UI', 9), width=12)
     height_var.insert(0, str(config.get("max_height", 1080)))
     height_var.grid(row=1, column=1, padx=5, pady=5)
     
     # Quality
-    ttk.Label(img_frame, text="Quality (1-100):").grid(row=2, column=0, padx=5, pady=5, sticky='w')
-    quality_var = ttk.Entry(img_frame, width=10)
+    tk.Label(img_frame, text="Quality (1-100):", font=('Segoe UI', 9)).grid(
+        row=2, column=0, padx=5, pady=5, sticky='w')
+    quality_var = tk.Entry(img_frame, font=('Segoe UI', 9), width=12)
     quality_var.insert(0, str(config.get("quality", 85)))
     quality_var.grid(row=2, column=1, padx=5, pady=5)
     
     # ─── Video Settings Section ───
-    ttk.Label(scrollable, text="🎬 Video Settings", style='Section.TLabel').pack(pady=(10, 5))
+    vid_header = tk.Label(scroll_frame, text="🎬 Video Settings", 
+                         font=('Segoe UI', 11, 'bold'), fg='#2c7be5')
+    vid_header.pack(pady=(section_gap, 8))
     
-    vid_frame = ttk.LabelFrame(scrollable, text="Conversion Options", padding=10)
-    vid_frame.pack(fill=tk.X, pady=5)
+    vid_frame = tk.LabelFrame(scroll_frame, text="Conversion Options", 
+                             font=('Segoe UI', 9), padx=15, pady=10)
+    vid_frame.pack(fill=tk.X, padx=padding, pady=5)
     
     # CRF
-    ttk.Label(vid_frame, text="CRF (18-28):").grid(row=0, column=0, padx=5, pady=5, sticky='w')
-    crf_var = ttk.Entry(vid_frame, width=10)
+    tk.Label(vid_frame, text="CRF (18-28):", font=('Segoe UI', 9)).grid(
+        row=0, column=0, padx=5, pady=5, sticky='w')
+    crf_var = tk.Entry(vid_frame, font=('Segoe UI', 9), width=12)
     crf_var.insert(0, str(config.get("video_crf", 23)))
     crf_var.grid(row=0, column=1, padx=5, pady=5)
-    ttk.Label(vid_frame, text="(lower = better quality)").grid(row=0, column=2, padx=5, pady=5, sticky='w')
+    tk.Label(vid_frame, text="(lower = better quality)", 
+            font=('Segoe UI', 8), fg='#888').grid(
+        row=0, column=2, padx=5, pady=5, sticky='w')
     
     # Preset
-    ttk.Label(vid_frame, text="Preset:").grid(row=1, column=0, padx=5, pady=5, sticky='w')
-    preset_var = ttk.Combobox(vid_frame, values=["ultrafast", "faster", "fast", "medium", "slow", "slower"], width=8)
-    preset_var.set(str(config.get("video_preset", "medium")))
-    preset_var.grid(row=1, column=1, padx=5, pady=5)
-    ttk.Label(vid_frame, text="(slower = smaller file)").grid(row=1, column=2, padx=5, pady=5, sticky='w')
+    tk.Label(vid_frame, text="Preset:", font=('Segoe UI', 9)).grid(
+        row=1, column=0, padx=5, pady=5, sticky='w')
+    preset_var = tk.StringVar(value=str(config.get("video_preset", "medium")))
+    preset_combo = tk.OptionMenu(vid_frame, preset_var, 
+        "ultrafast", "faster", "fast", "medium", "slow", "slower")
+    preset_combo.config(font=('Segoe UI', 9))
+    preset_combo.grid(row=1, column=1, padx=5, pady=5, sticky='w')
+    tk.Label(vid_frame, text="(slower = smaller file)", 
+            font=('Segoe UI', 8), fg='#888').grid(
+        row=1, column=2, padx=5, pady=5, sticky='w')
     
     # Video Max Width
-    ttk.Label(vid_frame, text="Max Width:").grid(row=2, column=0, padx=5, pady=5, sticky='w')
-    v_width_var = ttk.Entry(vid_frame, width=10)
+    tk.Label(vid_frame, text="Max Width:", font=('Segoe UI', 9)).grid(
+        row=2, column=0, padx=5, pady=5, sticky='w')
+    v_width_var = tk.Entry(vid_frame, font=('Segoe UI', 9), width=12)
     v_width_var.insert(0, str(config.get("video_max_width", 1920)))
     v_width_var.grid(row=2, column=1, padx=5, pady=5)
     
     # Video Max Height
-    ttk.Label(vid_frame, text="Max Height:").grid(row=3, column=0, padx=5, pady=5, sticky='w')
-    v_height_var = ttk.Entry(vid_frame, width=10)
+    tk.Label(vid_frame, text="Max Height:", font=('Segoe UI', 9)).grid(
+        row=3, column=0, padx=5, pady=5, sticky='w')
+    v_height_var = tk.Entry(vid_frame, font=('Segoe UI', 9), width=12)
     v_height_var.insert(0, str(config.get("video_max_height", 1080)))
     v_height_var.grid(row=3, column=1, padx=5, pady=5)
     
@@ -122,11 +150,17 @@ def run_gui():
         except ValueError:
             messagebox.showerror("Error", "Invalid input values")
     
-    ttk.Button(scrollable, text="💾  Save Settings", command=save).pack(pady=10, fill=tk.X)
+    save_btn = tk.Button(scroll_frame, text="💾  Save Settings", 
+                        command=save, font=('Segoe UI', 10),
+                        bg='#2c7be5', fg='white', activebackground='#1a5bb5',
+                        activeforeground='white', bd=0, cursor='hand2',
+                        relief=tk.FLAT, padx=20, pady=8)
+    save_btn.pack(pady=15, fill=tk.X, padx=padding)
     
     def install():
         if install_context_menu():
-            messagebox.showinfo("Success", "Context menu installed!\n\nRight-click on images or videos to use.")
+            messagebox.showinfo("Success", 
+                "Context menu installed!\n\nRight-click on images or videos to use.")
         else:
             messagebox.showerror("Error", "Failed to install. Run as Admin?")
     
@@ -136,14 +170,25 @@ def run_gui():
         else:
             messagebox.showerror("Error", "Failed to uninstall. Run as Admin?")
     
-    btn_frame = ttk.Frame(scrollable)
-    btn_frame.pack(pady=10, fill=tk.X)
-    ttk.Button(btn_frame, text="🔧  Install Context Menu", command=install).pack(side=tk.LEFT, padx=5, fill=tk.X, expand=True)
-    ttk.Button(btn_frame, text="🗑️  Uninstall", command=uninstall).pack(side=tk.LEFT, padx=5, fill=tk.X, expand=True)
+    btn_frame = tk.Frame(scroll_frame)
+    btn_frame.pack(pady=10, padx=padding, fill=tk.X)
+    
+    install_btn = tk.Button(btn_frame, text="🔧  Install Context Menu", 
+        command=install, font=('Segoe UI', 9), bg='#28a745', fg='white',
+        activebackground='#218838', activeforeground='white', bd=0,
+        cursor='hand2', relief=tk.FLAT, padx=10, pady=6)
+    install_btn.pack(side=tk.LEFT, padx=5, fill=tk.X, expand=True)
+    
+    uninstall_btn = tk.Button(btn_frame, text="🗑️  Uninstall", 
+        command=uninstall, font=('Segoe UI', 9), bg='#dc3545', fg='white',
+        activebackground='#c82333', activeforeground='white', bd=0,
+        cursor='hand2', relief=tk.FLAT, padx=10, pady=6)
+    uninstall_btn.pack(side=tk.LEFT, padx=5, fill=tk.X, expand=True)
     
     # Info label
     info_text = "Supported: JPG, PNG, BMP, WebP, GIF | MP4, AVI, MOV, MKV, WMV, FLV, WebM"
-    ttk.Label(scrollable, text=info_text, font=('Segoe UI', 8), foreground='#888').pack(pady=5)
+    tk.Label(scroll_frame, text=info_text, font=('Segoe UI', 8), 
+            fg='#888').pack(pady=(10, padding))
 
 
 def main():
