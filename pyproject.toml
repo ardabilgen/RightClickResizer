@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "RightClickResizer"
+version = "2.0.0"
+description = "Windows context menu tool for resizing images and converting videos to MP4"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "ardabilgen"}
+]
+dependencies = [
+    "Pillow>=10.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pyinstaller>=6.0.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -4,7 +4,11 @@ import winreg
 import ctypes
 import logging
 
-SUPPORTED_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.bmp', '.webp', '.gif']
+# Supported file extensions
+IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.bmp', '.webp', '.gif']
+VIDEO_EXTENSIONS = ['.mp4', '.avi', '.mov', '.mkv', '.wmv', '.flv', '.webm', '.m4v', '.mpeg', '.mpg']
+ALL_EXTENSIONS = IMAGE_EXTENSIONS + VIDEO_EXTENSIONS
+
 
 def log_install(message):
     print(message)
@@ -16,22 +20,13 @@ def log_install(message):
     with open(log_path, "a") as f:
         f.write(message + "\n")
 
-def get_progid(extension):
-    try:
-        with winreg.OpenKey(winreg.HKEY_CLASSES_ROOT, extension) as key:
-            progid, _ = winreg.QueryValueEx(key, "")
-            return progid
-    except FileNotFoundError:
-        return None
-    except Exception as e:
-        print(f"Warning: Error looking up ProgID for {extension}: {e}")
-        return None
 
 def is_admin():
     try:
         return ctypes.windll.shell32.IsUserAnAdmin()
     except:
         return False
+
 
 def _cleanup_global_context_menu():
     """Attempts to delete global context menu registry keys if they exist."""
@@ -61,6 +56,7 @@ def _cleanup_global_context_menu():
     else:
         print("No global context menu keys found.")
 
+
 def install_context_menu():
     if not is_admin():
         print("Admin rights required to install context menu.")
@@ -72,29 +68,29 @@ def install_context_menu():
         if getattr(sys, 'frozen', False):
             exe_path = sys.executable
         else:
-            # For development, use python executable + script path
-            # But for the final context menu, we usually want the built exe.
-            # If running from source, we might point to a bat file or python command.
-            # For simplicity in this script, we'll assume we are setting it up for the current running method.
-            # However, the user requested a "setup" program. 
-            # Let's point to the current python script for now if not frozen.
+            # For development
             exe_path = f'"{sys.executable}" "{os.path.abspath(os.path.join(os.path.dirname(__file__), "main.py"))}"'
 
         log_install(f"Using exe_path: {exe_path}")
 
         registered_count = 0
-        for ext in SUPPORTED_EXTENSIONS:
+        total_count = len(ALL_EXTENSIONS)
+        
+        for ext in ALL_EXTENSIONS:
             # Use SystemFileAssociations to register directly under the extension
-            # This makes the context menu appear for all files with that extension
-            # regardless of their ProgID
             key_path = f"SystemFileAssociations\\{ext}\\shell\\RightClickResizer"
             
             log_install(f"Registering context menu for {ext} using SystemFileAssociations")
             
+            # Determine if this is a video or image extension
+            is_video = ext in VIDEO_EXTENSIONS
+            menu_text = "Convert to MP4" if is_video else "Resize Image"
+            icon = "shell32.dll,-162" if is_video else "imageres.dll,-5100"
+            
             # Create key
             key = winreg.CreateKey(winreg.HKEY_CLASSES_ROOT, key_path)
-            winreg.SetValueEx(key, "", 0, winreg.REG_SZ, "Resize Image")
-            winreg.SetValueEx(key, "Icon", 0, winreg.REG_SZ, "imageres.dll,-5100") # Generic image icon
+            winreg.SetValueEx(key, "", 0, winreg.REG_SZ, menu_text)
+            winreg.SetValueEx(key, "Icon", 0, winreg.REG_SZ, icon)
             winreg.CloseKey(key)
             
             # Command key
@@ -105,12 +101,13 @@ def install_context_menu():
             winreg.CloseKey(command_key)
             registered_count += 1
         
-        log_install(f"Registered {registered_count}/{len(SUPPORTED_EXTENSIONS)} extensions.")
+        log_install(f"Registered {registered_count}/{total_count} extensions.")
         log_install("Context menu installed successfully.")
         return True
     except Exception as e:
         print(f"Failed to install context menu: {e}")
         return False
+
 
 def uninstall_context_menu():
     if not is_admin():
@@ -119,20 +116,20 @@ def uninstall_context_menu():
 
     _cleanup_global_context_menu()
     try:
-        for ext in SUPPORTED_EXTENSIONS:
+        for ext in ALL_EXTENSIONS:
             # Use SystemFileAssociations for uninstall as well
             key_path = f"SystemFileAssociations\\{ext}\\shell\\RightClickResizer"
             # Delete command key first
             try:
                 winreg.DeleteKey(winreg.HKEY_CLASSES_ROOT, f"{key_path}\\command")
             except (FileNotFoundError, OSError):
-                pass # Key might not exist
+                pass  # Key might not exist
             
             # Delete main key
             try:
                 winreg.DeleteKey(winreg.HKEY_CLASSES_ROOT, key_path)
             except (FileNotFoundError, OSError):
-                pass # Key might not exist
+                pass  # Key might not exist
                 
         print("Context menu uninstalled successfully.")
         return True
