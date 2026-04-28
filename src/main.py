@@ -1,11 +1,11 @@
 import sys
 import os
 import tkinter as tk
-from tkinter import messagebox, ttk, Scrollbar
+from tkinter import messagebox, Scrollbar
 from config import load_config, save_config
 from resizer import resize_image
 from video_converter import convert_to_mp4, VIDEO_EXTENSIONS
-from context_menu import install_context_menu, uninstall_context_menu, is_admin, IMAGE_EXTENSIONS, ALL_EXTENSIONS
+from context_menu import install_context_menu, uninstall_context_menu, is_admin
 import ctypes
 
 
@@ -16,8 +16,10 @@ def is_video_file(file_path):
 
 
 def run_gui():
+    print("Starting GUI...")
+    
     root = tk.Tk()
-    root.title("RightClickResizer — Image & Video Tool")
+    root.title("RightClickResizer - Image & Video Tool")
     root.geometry("500x600")
     root.minsize(400, 400)
     
@@ -50,8 +52,8 @@ def run_gui():
     padding = 20
     section_gap = 15
     
-    # ─── Title ───
-    title_lbl = tk.Label(scroll_frame, text="⚡ RightClickResizer", 
+    # Title
+    title_lbl = tk.Label(scroll_frame, text="RightClickResizer", 
                         font=('Segoe UI', 16, 'bold'))
     title_lbl.pack(pady=(padding, 5))
     
@@ -59,8 +61,8 @@ def run_gui():
                            font=('Segoe UI', 9), fg='#666')
     subtitle_lbl.pack(pady=(0, section_gap))
     
-    # ─── Image Settings Section ───
-    img_header = tk.Label(scroll_frame, text="🖼️  Image Settings", 
+    # Image Settings Section
+    img_header = tk.Label(scroll_frame, text="Image Settings", 
                          font=('Segoe UI', 11, 'bold'), fg='#2c7be5')
     img_header.pack(pady=(0, 8))
     
@@ -89,8 +91,8 @@ def run_gui():
     quality_var.insert(0, str(config.get("quality", 85)))
     quality_var.grid(row=2, column=1, padx=5, pady=5)
     
-    # ─── Video Settings Section ───
-    vid_header = tk.Label(scroll_frame, text="🎬 Video Settings", 
+    # Video Settings Section
+    vid_header = tk.Label(scroll_frame, text="Video Settings", 
                          font=('Segoe UI', 11, 'bold'), fg='#2c7be5')
     vid_header.pack(pady=(section_gap, 8))
     
@@ -150,7 +152,7 @@ def run_gui():
         except ValueError:
             messagebox.showerror("Error", "Invalid input values")
     
-    save_btn = tk.Button(scroll_frame, text="💾  Save Settings", 
+    save_btn = tk.Button(scroll_frame, text="Save Settings", 
                         command=save, font=('Segoe UI', 10),
                         bg='#2c7be5', fg='white', activebackground='#1a5bb5',
                         activeforeground='white', bd=0, cursor='hand2',
@@ -173,13 +175,13 @@ def run_gui():
     btn_frame = tk.Frame(scroll_frame)
     btn_frame.pack(pady=10, padx=padding, fill=tk.X)
     
-    install_btn = tk.Button(btn_frame, text="🔧  Install Context Menu", 
+    install_btn = tk.Button(btn_frame, text="Install Context Menu", 
         command=install, font=('Segoe UI', 9), bg='#28a745', fg='white',
         activebackground='#218838', activeforeground='white', bd=0,
         cursor='hand2', relief=tk.FLAT, padx=10, pady=6)
     install_btn.pack(side=tk.LEFT, padx=5, fill=tk.X, expand=True)
     
-    uninstall_btn = tk.Button(btn_frame, text="🗑️  Uninstall", 
+    uninstall_btn = tk.Button(btn_frame, text="Uninstall", 
         command=uninstall, font=('Segoe UI', 9), bg='#dc3545', fg='white',
         activebackground='#c82333', activeforeground='white', bd=0,
         cursor='hand2', relief=tk.FLAT, padx=10, pady=6)
@@ -189,9 +191,16 @@ def run_gui():
     info_text = "Supported: JPG, PNG, BMP, WebP, GIF | MP4, AVI, MOV, MKV, WMV, FLV, WebM"
     tk.Label(scroll_frame, text=info_text, font=('Segoe UI', 8), 
             fg='#888').pack(pady=(10, padding))
+    
+    print("GUI setup complete, starting mainloop...")
+    root.mainloop()
 
 
 def main():
+    print("RightClickResizer starting...")
+    print(f"Arguments: {sys.argv}")
+    print(f"Frozen: {getattr(sys, 'frozen', False)}")
+    
     # Check if arguments are passed (files to process)
     if len(sys.argv) > 1:
         # Process files
@@ -236,7 +245,13 @@ def main():
         print(f"\nDone! Processed: {success_count}, Failed: {fail_count}")
     else:
         # No arguments, open GUI
-        run_gui()
+        try:
+            run_gui()
+        except Exception as e:
+            print(f"GUI Error: {e}")
+            import traceback
+            traceback.print_exc()
+            input("Press Enter to exit...")
 
 
 if __name__ == "__main__":
